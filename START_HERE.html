@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Folio installation guide</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                background: #f6f7f2;
+                color: #243b35;
+                font:
+                    16px/1.7 system-ui,
+                    sans-serif;
+            }
+            main {
+                max-width: 850px;
+                margin: 55px auto;
+                padding: 0 25px 60px;
+            }
+            header {
+                margin-bottom: 38px;
+                border-bottom: 1px solid #dce3d8;
+                padding-bottom: 30px;
+            }
+            .brand {
+                font:
+                    42px Georgia,
+                    serif;
+                margin: 0;
+            }
+            .eyebrow {
+                font-size: 11px;
+                letter-spacing: 0.16em;
+                text-transform: uppercase;
+                color: #68765c;
+            }
+            h1 {
+                font:
+                    36px/1.2 Georgia,
+                    serif;
+                margin: 15px 0;
+            }
+            h2 {
+                font-size: 21px;
+                margin: 35px 0 12px;
+            }
+            p {
+                margin: 10px 0;
+            }
+            code {
+                font:
+                    14px/1.8 Consolas,
+                    monospace;
+            }
+            pre {
+                background: #fff;
+                border: 1px solid #dce3d8;
+                padding: 18px 20px;
+                border-radius: 9px;
+                overflow: auto;
+                line-height: 1.8;
+            }
+            a {
+                color: #254e41;
+                font-weight: 600;
+                text-underline-offset: 3px;
+            }
+            li {
+                margin: 6px 0;
+            }
+            .muted {
+                color: #637366;
+            }
+            footer {
+                border-top: 1px solid #dce3d8;
+                padding-top: 20px;
+                margin-top: 40px;
+                font-size: 13px;
+            }
+            strong {
+                font-weight: 650;
+            }
+            @media (max-width: 600px) {
+                main {
+                    margin: 30px auto;
+                }
+                h1 {
+                    font-size: 29px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <header>
+                <p class="brand">folio.</p>
+                <p class="eyebrow">Book Rental System · Laravel MVC activity</p>
+                <h1>Your project is ready to install.</h1>
+                <p class="muted">
+                    Follow these steps once, then use Folio to manage books,
+                    borrowers, rentals, and returns. This page is the
+                    installation guide; the application runs at the local URL
+                    shown by Artisan.
+                </p>
+            </header>
+            <h2>1. Check your tools</h2>
+            <p>
+                You need PHP 8.2 or later within Laravel 12's supported range,
+                Composer 2, and MySQL or MariaDB. XAMPP can provide PHP and the
+                database. Open Command Prompt in the extracted
+                <code>folio-book-rental</code> folder.
+            </p>
+            <pre><code>php -v
+composer --version</code></pre>
+            <p>
+                The interface assets are already compiled. Node.js is only
+                needed if you want to rebuild the design.
+            </p>
+            <h2>2. Install the dependencies</h2>
+            <pre><code>composer install
+copy .env.example .env
+php artisan key:generate
+composer check-platform-reqs</code></pre>
+            <p>
+                Copy <code>.env.example</code> only on a fresh installation.
+                Subsequent copies replace your local settings.
+            </p>
+            <h2>3. Create and connect the database</h2>
+            <p>
+                Start MySQL in XAMPP. In phpMyAdmin, create the database with
+                this SQL:
+            </p>
+            <pre><code>CREATE DATABASE folio_book_rental
+CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;</code></pre>
+            <p>
+                Set the database connection in <code>.env</code>. Change the
+                port, username, and password to match your computer.
+            </p>
+            <pre><code>DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=folio_book_rental
+DB_USERNAME=root
+DB_PASSWORD=</code></pre>
+            <h2>4. Set up and open Folio</h2>
+            <pre><code>php artisan optimize:clear
+php artisan migrate --seed
+php artisan serve</code></pre>
+            <p>
+                Open <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a>,
+                or the local URL printed by Artisan. Keep the terminal and
+                database server running. The included demo starts with 12 books,
+                6 fictional borrowers, and 8 rental records.
+            </p>
+            <h2>5. Try the complete workflow</h2>
+            <ol>
+                <li>Add a book and a borrower.</li>
+                <li>Create a rental using that book and borrower.</li>
+                <li>Open the rental, record its return, and confirm.</li>
+                <li>Rent the same book again and review its history.</li>
+            </ol>
+            <p>
+                Book availability changes automatically. Records with rental
+                history are retained. Book prices are recorded values; no rental
+                fees or fines are calculated.
+            </p>
+            <h2>6. Prepare for your demonstration</h2>
+            <pre><code>php artisan test</code></pre>
+            <p>
+                The default tests use an isolated SQLite database and need
+                <code>pdo_sqlite</code>. Functional tests passed on both SQLite
+                and MariaDB, and separate concurrent rent/return checks passed
+                on MariaDB. Visual browser QA was blocked in the build
+                workspace; check your installed app at desktop and mobile widths
+                before presenting.
+            </p>
+            <ul>
+                <li>
+                    <a href="README.md">README.md</a> — full setup and
+                    troubleshooting.
+                </li>
+                <li>
+                    <a href="docs/PROJECT_GUIDE.md">Project guide</a> — MVC,
+                    schema, assignment mapping, and the demonstration script.
+                </li>
+                <li>
+                    <a href="docs/TESTING.md">Testing guide</a> — verification
+                    results and manual checks.
+                </li>
+            </ul>
+            <p>
+                Open the Markdown guides in VS Code if your browser displays
+                them as plain text or downloads them.
+            </p>
+            <h2>Everyday startup</h2>
+            <p>
+                After installation, start the database, open a terminal in this
+                folder, run <code>php artisan serve</code>, and visit the
+                displayed URL. You do not need to install or seed again.
+            </p>
+            <footer>
+                <p>
+                    Folio is intended for a local classroom demonstration. Do
+                    not use database reset commands on records you need to keep.
+                    Read the README before making a fresh database reset.
+                </p>
+            </footer>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "folio-book-rental",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --minify && node scripts/copy-assets.cjs",
+    "dev": "tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17",
+    "@fontsource/dm-sans": "^5.2.0",
+    "@fontsource/lora": "^5.2.0"
+  }
+}
