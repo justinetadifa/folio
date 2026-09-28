@@ -12,30 +12,27 @@
         $availablePicks = $books->filter(fn($b) => (!$featuredBook || $b->book_id !== $featuredBook->book_id))->take(2);
     @endphp
 
-    <!-- Instant Restore Toast Banner for Mistakenly Deleted Volumes -->
+    <!-- Floating 1-Click Undo Snackbar (Discrete & Non-Intrusive) -->
     @if (session('restorable_id'))
-        <div class="deleted-restore-toast mb-6" role="status">
-            <div class="toast-left-content">
-                <div class="toast-icon-circle">
-                    <x-icon name="rotate-ccw" class="w-4 h-4 text-amber-800" />
-                </div>
-                <div>
-                    <h4 class="toast-heading">Volume Moved to Recently Deleted</h4>
-                    <p class="toast-body">
-                        "<strong>{{ session('restorable_title') }}</strong>" was removed from active shelves. Mistakenly deleted? Restore it right away.
-                    </p>
-                </div>
+        <aside class="folio-floating-toast" role="status" aria-live="polite">
+            <div class="toast-indicator">
+                <x-icon name="check-circle" class="w-4 h-4 text-emerald-400" />
             </div>
-            <div class="toast-actions">
-                <form method="POST" action="{{ route('books.restore', session('restorable_id')) }}">
-                    @csrf
-                    <button type="submit" class="btn-toast-restore">
-                        <x-icon name="rotate-ccw" class="w-3.5 h-3.5" />
-                        <span>Undo & Restore Volume</span>
-                    </button>
-                </form>
+            <div class="toast-body">
+                <p class="toast-title font-serif">Volume archived</p>
+                <p class="toast-desc">“{{ Str::limit(session('restorable_title'), 28) }}” moved to trash.</p>
             </div>
-        </div>
+            <form method="POST" action="{{ route('books.restore', session('restorable_id')) }}">
+                @csrf
+                <button type="submit" class="toast-undo-action">
+                    <x-icon name="rotate-ccw" class="w-3.5 h-3.5" />
+                    <span>Undo</span>
+                </button>
+            </form>
+            <button type="button" class="toast-dismiss" onclick="this.closest('.folio-floating-toast').remove()" aria-label="Dismiss">
+                <x-icon name="close" class="w-3.5 h-3.5" />
+            </button>
+        </aside>
     @endif
 
     <!-- Compact Integrated Header & Control Bar -->
@@ -82,12 +79,12 @@
                 @endif
             </form>
 
-            <!-- Recently Deleted Archive Button -->
-            <button type="button" id="toggle-trash-btn" class="btn-shelf-trash" aria-expanded="false" title="View recently deleted volumes">
-                <x-icon name="history" class="w-3.5 h-3.5 text-amber-700" />
+            <!-- Refined Recently Deleted Archive Button -->
+            <button type="button" id="toggle-trash-btn" class="shelf-trash-btn" aria-expanded="false" title="View recently deleted volumes">
+                <x-icon name="history" class="w-3.5 h-3.5 text-muted" />
                 <span class="hidden sm:inline">Recently Deleted</span>
                 @if (isset($deletedBooks) && $deletedBooks->isNotEmpty())
-                    <span class="trash-badge-count">{{ $deletedBooks->count() }}</span>
+                    <span class="shelf-trash-pill">{{ $deletedBooks->count() }}</span>
                 @endif
             </button>
 
@@ -98,58 +95,57 @@
         </div>
     </div>
 
-    <!-- Expandable Recently Deleted Volumes Drawer -->
-    <div id="trash-drawer" class="trash-archive-drawer mb-8" style="display: none;">
-        <div class="trash-drawer-header">
-            <div class="flex items-center gap-3">
-                <div class="trash-header-icon-box">
-                    <x-icon name="history" class="w-4 h-4 text-amber-800" />
-                </div>
-                <div>
-                    <h3 class="trash-header-title font-serif">Recently Deleted Volumes Archive</h3>
-                    <p class="trash-header-subtitle">Restore mistakenly deleted books with 1 click, or permanently purge them from the catalog.</p>
-                </div>
+    <!-- Refined Archival Trash Tray (Clean, Spacious & Organized) -->
+    <div id="trash-drawer" class="archival-trash-tray mb-8" style="display: none;">
+        <div class="trash-tray-header">
+            <div class="flex items-center gap-2.5">
+                <span class="trash-tray-badge font-serif">Holding Tray</span>
+                <span class="trash-tray-count">{{ isset($deletedBooks) ? $deletedBooks->count() : 0 }} {{ Str::plural('volume', isset($deletedBooks) ? $deletedBooks->count() : 0) }} archived</span>
             </div>
-            <button type="button" id="close-trash-btn" class="trash-close-action" aria-label="Close archive drawer">
-                <x-icon name="close" class="w-4 h-4" />
+            <button type="button" id="close-trash-btn" class="trash-tray-close" aria-label="Close archive tray">
+                <x-icon name="close" class="w-3.5 h-3.5" />
+                <span class="text-xs">Close</span>
             </button>
         </div>
 
         @if (!isset($deletedBooks) || $deletedBooks->isEmpty())
             <div class="trash-empty-notice">
-                <p class="text-sm font-medium text-ink">Archive holding vault is empty</p>
+                <p class="text-sm font-medium text-ink">Archive holding tray is empty</p>
                 <p class="text-xs text-muted mt-0.5">No deleted volumes recorded. All titles remain safely cataloged on active shelves.</p>
             </div>
         @else
-            <div class="trash-grid">
+            <div class="trash-rows-list">
                 @foreach ($deletedBooks as $deleted)
-                    <div class="trash-card">
-                        <div class="trash-card-info">
-                            <span class="trash-card-id font-serif">#{{ str_pad($deleted->original_book_id ?? $deleted->id, 3, '0', STR_PAD_LEFT) }}</span>
-                            <div>
-                                <h4 class="trash-card-title font-serif">{{ $deleted->title }}</h4>
-                                <p class="trash-card-author">By {{ $deleted->author }} · {{ $deleted->published_year }} · ₱{{ number_format((float) $deleted->price, 2) }}</p>
-                                <span class="trash-card-time">Deleted {{ $deleted->deleted_at ? $deleted->deleted_at->diffForHumans() : 'recently' }}</span>
+                    <div class="archive-row">
+                        <div class="archive-row-main">
+                            <span class="archive-id-badge font-serif">#{{ str_pad($deleted->original_book_id ?? $deleted->id, 3, '0', STR_PAD_LEFT) }}</span>
+                            <div class="archive-info">
+                                <h4 class="archive-title font-serif">{{ $deleted->title }}</h4>
+                                <p class="archive-meta">By <span class="font-medium text-ink">{{ $deleted->author }}</span> · {{ $deleted->published_year }} · ₱{{ number_format((float) $deleted->price, 2) }}</p>
                             </div>
                         </div>
-                        <div class="trash-card-actions">
-                            <form method="POST" action="{{ route('books.restore', $deleted->id) }}">
-                                @csrf
-                                <button type="submit" class="btn-trash-restore" title="Restore this book to the active catalog">
-                                    <x-icon name="rotate-ccw" class="w-3.5 h-3.5" />
-                                    <span>Restore to shelf</span>
-                                </button>
-                            </form>
-                            <form method="POST" action="{{ route('books.purge', $deleted->id) }}"
-                                data-confirm="Permanently purge '{{ $deleted->title }}' from database? This cannot be undone."
-                                data-confirm-label="Purge volume">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-trash-purge" title="Permanently delete from database">
-                                    <x-icon name="delete" class="w-3.5 h-3.5" />
-                                    <span>Purge</span>
-                                </button>
-                            </form>
+
+                        <div class="archive-row-side">
+                            <span class="archive-timestamp">Deleted {{ $deleted->deleted_at ? $deleted->deleted_at->diffForHumans() : 'recently' }}</span>
+                            <div class="archive-actions">
+                                <form method="POST" action="{{ route('books.restore', $deleted->id) }}">
+                                    @csrf
+                                    <button type="submit" class="btn-archive-restore" title="Restore this book to active catalog">
+                                        <x-icon name="rotate-ccw" class="w-3.5 h-3.5" />
+                                        <span>Restore</span>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('books.purge', $deleted->id) }}"
+                                    data-confirm="Permanently purge '{{ $deleted->title }}' from the database? This cannot be undone."
+                                    data-confirm-label="Purge volume">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-archive-purge" title="Permanently delete from database">
+                                        <x-icon name="delete" class="w-3.5 h-3.5" />
+                                        <span>Purge</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 @endforeach
